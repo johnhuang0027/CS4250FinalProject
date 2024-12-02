@@ -7,6 +7,7 @@ nltk.download('wordnet')    #downloads a set of stop words so we dont have to do
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 client = MongoClient("mongodb://localhost:27017/")
 db = client['biology_research']
