@@ -25,10 +25,22 @@ def fetch_html(url):
 # Function to extract research content from faculty pages
 def extract_research_content(html):
     soup = BeautifulSoup(html, 'html.parser')
-    research_div = soup.find(name={"div", "p"}, attrs={"class": "section-intro"}, recursive={"class": "span12"})
-    if research_div:
-        return research_div.get_text(strip=True)
-    return ""
+    
+    # Look for the main research container
+    research_div = soup.find("div", class_="section-intro")
+    if not research_div:
+        print("Research content not found in 'section-intro'.")
+        return ""
+    
+    # Collect all text from the nested elements
+    research_text = []
+    for p_tag in research_div.find_all(["p", "div"], recursive=True):
+        text = p_tag.get_text(strip=True)
+        if text:
+            research_text.append(text)
+    
+    # Join all the extracted text
+    return " ".join(research_text)
 
 # Function to extract, process, and store research terms
 #def preprocess_text(text):
@@ -52,6 +64,7 @@ def process_faculty_research():
         # Extracting
         research_text = extract_research_content(html)
         if not research_text:
+            print(f"No research content found for: {url}")
             continue
         
         faculty_collection.update_one(

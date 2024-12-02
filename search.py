@@ -1,3 +1,4 @@
+import re
 from pymongo import MongoClient
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -21,11 +22,17 @@ def rank_faculty(query, research_texts, metadata):
     vectorizer = TfidfVectorizer(
         stop_words="english", 
         ngram_range=(1, 3),
-        min_df=2,  # Ignore terms that appear in fewer than 2 documents
+        min_df=1,   # Consider terms that appear in at least 1 document
         max_features=5000,  # Limit vocabulary size
-        sublinear_tf=True  # Scale term frequencies
+        sublinear_tf=True   # Scale term frequencies
     )
+    
+    # Fit the vectorizer
     tfidf_matrix = vectorizer.fit_transform(research_texts)
+    
+    # Debugging: Print the feature names
+    print("TF-IDF Feature Names:")
+    print(vectorizer.get_feature_names_out())
 
     # Transform the query into a TF-IDF vector
     query_vector = vectorizer.transform([query])
@@ -34,9 +41,9 @@ def rank_faculty(query, research_texts, metadata):
     scores = cosine_similarity(query_vector, tfidf_matrix).flatten()
     
     def highlight_snippet(text, query):
-        query_terms = query.lower().split()
-        for term in query_terms:
-            text = text.replace(term, f"**{term}**")  # Bold matched terms
+        terms = re.split(r'\W+', query.lower())
+        for term in terms:
+            text = re.sub(f"({term})", r"**\1**", text, flags=re.IGNORECASE)
         return text[:200]
 
     # Update snippet generation in `rank_faculty`
